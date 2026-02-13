@@ -1,6 +1,6 @@
 """add student class and group number
 
-Revision ID: 0002_add_student_class_group_number
+Revision ID: 0002_student_class_group
 Revises: 0001_init
 Create Date: 2026-02-13
 """
@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = "0002_add_student_class_group_number"
+revision = "0002_student_class_group"
 down_revision = "0001_init"
 branch_labels = None
 depends_on = None
