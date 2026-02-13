@@ -39,6 +39,14 @@ FastAPI + Postgres backend for the learning app.
 4. Run API
    uvicorn app.main:app --reload
 
+## Seed mock data
+1. Apply migrations
+   alembic upgrade head
+2. Seed (does nothing if data already exists)
+   python scripts/seed_mock_data.py
+3. Reseed from scratch
+   python scripts/seed_mock_data.py --reset
+
 ## Create admin user
 1. Register a parent via `POST /auth/register-parent`
 2. Promote to admin via SQL:
