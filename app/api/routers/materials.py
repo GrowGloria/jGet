@@ -3,7 +3,6 @@ import uuid
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_admin
 from app.core.db import get_session
 from app.core.errors import BadRequest, NotFound
 from app.models.material import Material
@@ -58,7 +57,6 @@ async def list_materials_route(
 @router.post("/materials", response_model=MaterialOut, status_code=status.HTTP_201_CREATED)
 async def create_material_route(
     payload: MaterialCreate,
-    user=Depends(require_admin()),
     session: AsyncSession = Depends(get_session),
 ):
     material = Material(

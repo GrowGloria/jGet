@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, require_parent
+from app.api.deps import get_user_by_id_param
 from app.core.db import get_session
 from app.core.errors import BadRequest
 from app.core.settings import settings
@@ -25,7 +25,7 @@ router = APIRouter(tags=["lessons"])
 async def list_lessons(
     limit: int = 20,
     cursor: str | None = None,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     items, next_cursor = await list_lessons_for_user(session, user, limit, cursor)
@@ -35,7 +35,7 @@ async def list_lessons(
 @router.get("/lessons/{lesson_id}", response_model=LessonDetailOut)
 async def get_lesson(
     lesson_id: uuid.UUID,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     lesson = await get_lesson_for_user(session, user, lesson_id)
@@ -57,7 +57,7 @@ async def list_lessons_month(
     month: int | None = None,
     limit: int = 100,
     cursor: str | None = None,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     now = now_tz()
@@ -93,7 +93,7 @@ async def list_lessons_range(
     to_date: date = Query(alias="to"),
     limit: int = 50,
     cursor: str | None = None,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     if from_date > to_date:
@@ -119,7 +119,7 @@ async def list_lessons_range(
 async def will_go(
     lesson_id: uuid.UUID,
     payload: WillGoRequest,
-    user=Depends(require_parent()),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     part = await upsert_will_go(session, user.id, lesson_id, payload.student_id, payload.will_go)

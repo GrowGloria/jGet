@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_user_by_id_param
 from app.core.db import get_session
 from app.core.errors import NotFound
 from app.schemas.device_token import DeviceTokenCreate, DeviceTokenOut
@@ -15,7 +15,7 @@ router = APIRouter(tags=["device_tokens"])
 @router.post("/device-tokens", response_model=DeviceTokenOut, status_code=status.HTTP_201_CREATED)
 async def register_token(
     payload: DeviceTokenCreate,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     return await register_device_token(session, user.id, payload.token, payload.platform)
@@ -24,7 +24,7 @@ async def register_token(
 @router.delete("/device-tokens/{token_id}")
 async def revoke_token(
     token_id: uuid.UUID,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     token = await revoke_device_token(session, user.id, token_id)

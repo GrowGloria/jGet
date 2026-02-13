@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
+from app.api.deps import get_user_by_id_param
 from app.core.db import get_session
 from app.core.errors import NotFound
 from app.schemas.notification import NotificationOut, NotificationsPage
@@ -16,7 +16,7 @@ router = APIRouter(tags=["notifications"])
 async def list_notifications_route(
     limit: int = 20,
     cursor: str | None = None,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     items, next_cursor = await list_notifications(session, user.id, limit, cursor)
@@ -26,7 +26,7 @@ async def list_notifications_route(
 @router.post("/notifications/{notification_id}/read", response_model=NotificationOut)
 async def mark_notification_read(
     notification_id: uuid.UUID,
-    user=Depends(get_current_user),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     notification = await mark_read(session, user.id, notification_id)

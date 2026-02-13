@@ -18,9 +18,6 @@ def database_url(postgres_container):
     url = postgres_container.get_connection_url()
     async_url = url.replace("postgresql://", "postgresql+asyncpg://")
     os.environ["DATABASE_URL"] = async_url
-    os.environ["JWT_SECRET"] = "test-secret"
-    os.environ["ACCESS_TTL"] = "1800"
-    os.environ["REFRESH_TTL"] = "2592000"
     return async_url
 
 

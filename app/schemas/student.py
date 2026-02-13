@@ -11,6 +11,8 @@ class StudentCreate(BaseModel):
     first_name: str
     last_name: str
     father_name: str | None = None
+    school_class: str | None = None
+    group_number: str | None = None
     birthdate: date | None = None
     is_active: bool = True
 
@@ -22,6 +24,8 @@ class StudentOut(BaseSchema):
     first_name: str
     last_name: str
     father_name: str | None = None
+    school_class: str | None = None
+    group_number: str | None = None
     birthdate: date | None = None
     is_active: bool
     created_at: datetime

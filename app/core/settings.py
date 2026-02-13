@@ -12,11 +12,6 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://app:app@localhost:5432/app"
 
-    JWT_SECRET: str = "change-me"
-    ACCESS_TTL: int = 1800  # seconds
-    REFRESH_TTL: int = 2592000  # seconds
-    JWT_ALGORITHM: str = "HS256"
-
     TIMEZONE: str = "Europe/Vienna"
     UPLOAD_DIR: str = "./uploads"
 

@@ -3,7 +3,7 @@ import uuid
 
 import pytest
 
-from app.core.security import create_access_token, hash_password
+from app.core.security import hash_password
 from app.models.group import Group
 from app.models.lesson import Lesson
 from app.models.manager import Manager
@@ -89,11 +89,8 @@ async def test_lessons_pagination_and_detail(session, client):
     session.add_all([lesson_first, lesson_second])
     await session.commit()
 
-    token = create_access_token(parent.id)
-
     page_one = await client.get(
-        "/lessons?limit=1",
-        headers={"Authorization": f"Bearer {token}"},
+        f"/lessons?limit=1&user_id={parent.id}",
     )
     assert page_one.status_code == 200
     page_one_data = page_one.json()
@@ -101,16 +98,14 @@ async def test_lessons_pagination_and_detail(session, client):
     assert page_one_data["next_cursor"]
 
     page_two = await client.get(
-        f"/lessons?limit=1&cursor={page_one_data['next_cursor']}",
-        headers={"Authorization": f"Bearer {token}"},
+        f"/lessons?limit=1&cursor={page_one_data['next_cursor']}&user_id={parent.id}",
     )
     assert page_two.status_code == 200
     page_two_data = page_two.json()
     assert page_two_data["items"][0]["id"] == str(lesson_second.id)
 
     detail = await client.get(
-        f"/lessons/{lesson_first.id}",
-        headers={"Authorization": f"Bearer {token}"},
+        f"/lessons/{lesson_first.id}?user_id={parent.id}",
     )
     assert detail.status_code == 200
     detail_data = detail.json()
@@ -146,10 +141,8 @@ async def test_me_courses(session, client):
     session.add(student)
     await session.commit()
 
-    token = create_access_token(parent.id)
     resp = await client.get(
-        "/me/courses",
-        headers={"Authorization": f"Bearer {token}"},
+        f"/me/courses?user_id={parent.id}",
     )
     assert resp.status_code == 200
     courses = resp.json()
@@ -173,10 +166,8 @@ async def test_managers_list(session, client):
     session.add_all([user, manager])
     await session.commit()
 
-    token = create_access_token(user.id)
     resp = await client.get(
         "/managers",
-        headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 200
     data = resp.json()

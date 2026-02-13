@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_parent
+from app.api.deps import get_user_by_id_param
 from app.core.db import get_session
 from app.schemas.payment import PaymentCreateRequest, PaymentOut, PaymentWebhookRequest, PaymentsPage
 from app.services.payments import create_payment, handle_webhook, list_payments
@@ -12,7 +12,7 @@ router = APIRouter(tags=["payments"])
 @router.post("/payments/create", response_model=PaymentOut, status_code=status.HTTP_201_CREATED)
 async def create_payment_route(
     payload: PaymentCreateRequest,
-    user=Depends(require_parent()),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     return await create_payment(
@@ -37,7 +37,7 @@ async def webhook(provider: str, payload: PaymentWebhookRequest, session: AsyncS
 async def list_payments_route(
     limit: int = 20,
     cursor: str | None = None,
-    user=Depends(require_parent()),
+    user=Depends(get_user_by_id_param),
     session: AsyncSession = Depends(get_session),
 ):
     items, next_cursor = await list_payments(session, user.id, limit, cursor)

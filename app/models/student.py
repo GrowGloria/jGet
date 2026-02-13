@@ -16,5 +16,7 @@ class Student(Base, UUIDMixin, TimestampMixin):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     father_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    school_class: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    group_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     birthdate: Mapped[date | None] = mapped_column(Date, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"), nullable=False)
