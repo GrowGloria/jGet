@@ -1,8 +1,8 @@
 import hashlib
 from passlib.context import CryptContext
 
-# Use pbkdf2_sha256 to avoid bcrypt 72-byte limit and backend issues
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+# Use pbkdf2_sha256 for new hashes, but keep bcrypt for existing users
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
