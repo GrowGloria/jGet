@@ -6,9 +6,9 @@ pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto
 
 def _normalize_password(password: str) -> str:
     # bcrypt backend enforces 72-byte limit; prehash if longer to avoid errors
-    password_bytes = password.encode("utf-8")
-    if len(password_bytes) > 72:
-        return hashlib.sha256(password_bytes).hexdigest()
+    # password_bytes = password.encode("utf-8")
+    # if len(password_bytes) > 72:
+    #     return hashlib.sha256(password_bytes).hexdigest()
     return password
 
 
