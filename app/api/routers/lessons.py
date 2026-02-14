@@ -32,25 +32,6 @@ async def list_lessons(
     return LessonListPage(items=items, next_cursor=next_cursor)
 
 
-@router.get("/lessons/{lesson_id}", response_model=LessonDetailOut)
-async def get_lesson(
-    lesson_id: uuid.UUID,
-    user=Depends(get_user_by_id_param),
-    session: AsyncSession = Depends(get_session),
-):
-    lesson = await get_lesson_for_user(session, user, lesson_id)
-    duration_minutes = int((lesson.ends_at - lesson.starts_at).total_seconds() / 60)
-    return LessonDetailOut(
-        id=lesson.id,
-        title=lesson.topic,
-        description=lesson.plan_text,
-        starts_at=lesson.starts_at,
-        duration_minutes=duration_minutes,
-        teacher_name=lesson.teacher_name,
-        cabinet_text=lesson.cabinet_text,
-    )
-
-
 @router.get("/lessons/month", response_model=LessonListPage)
 async def list_lessons_month(
     year: int | None = None,
@@ -113,6 +94,25 @@ async def list_lessons_range(
         max_limit=50,
     )
     return LessonListPage(items=items, next_cursor=next_cursor)
+
+
+@router.get("/lessons/{lesson_id}", response_model=LessonDetailOut)
+async def get_lesson(
+    lesson_id: uuid.UUID,
+    user=Depends(get_user_by_id_param),
+    session: AsyncSession = Depends(get_session),
+):
+    lesson = await get_lesson_for_user(session, user, lesson_id)
+    duration_minutes = int((lesson.ends_at - lesson.starts_at).total_seconds() / 60)
+    return LessonDetailOut(
+        id=lesson.id,
+        title=lesson.topic,
+        description=lesson.plan_text,
+        starts_at=lesson.starts_at,
+        duration_minutes=duration_minutes,
+        teacher_name=lesson.teacher_name,
+        cabinet_text=lesson.cabinet_text,
+    )
 
 
 @router.post("/lessons/{lesson_id}/will-go")
