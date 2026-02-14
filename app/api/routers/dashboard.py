@@ -191,6 +191,60 @@ _DASHBOARD_HTML = """<!doctype html>
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       }
 
+      .form-card h3 {
+        margin-bottom: 12px;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .form-field {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+
+      .form-field input,
+      .form-field textarea,
+      .form-field select {
+        font-family: inherit;
+        font-size: 14px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #fdfdfd;
+        color: var(--ink-1);
+      }
+
+      .form-field textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .button {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        background: var(--accent-1);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .button.secondary {
+        background: var(--accent-2);
+      }
+
+      .response {
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
       @keyframes float-in {
         from {
           transform: translateY(8px);
@@ -236,6 +290,109 @@ _DASHBOARD_HTML = """<!doctype html>
 
       <div class="section">
         <div class="section-title">
+          <h2>Lesson manager</h2>
+          <span class="pill">Create / Update</span>
+        </div>
+        <div class="two-col">
+          <form class="card form-card" id="lesson-create-form">
+            <h3>Create lesson</h3>
+            <div class="form-grid">
+              <label class="form-field">
+                Group ID
+                <input type="text" name="group_id" placeholder="UUID" required />
+              </label>
+              <label class="form-field">
+                Starts at
+                <input type="datetime-local" name="starts_at" required />
+              </label>
+              <label class="form-field">
+                Ends at
+                <input type="datetime-local" name="ends_at" required />
+              </label>
+              <label class="form-field">
+                Topic
+                <input type="text" name="topic" />
+              </label>
+              <label class="form-field">
+                Plan text
+                <textarea name="plan_text"></textarea>
+              </label>
+              <label class="form-field">
+                Teacher name
+                <input type="text" name="teacher_name" />
+              </label>
+              <label class="form-field">
+                Cabinet text
+                <input type="text" name="cabinet_text" />
+              </label>
+              <label class="form-field">
+                Status
+                <select name="status">
+                  <option value="scheduled" selected>scheduled</option>
+                  <option value="cancelled">cancelled</option>
+                  <option value="completed">completed</option>
+                </select>
+              </label>
+              <button class="button" type="submit">Create lesson</button>
+            </div>
+          </form>
+
+          <form class="card form-card" id="lesson-update-form">
+            <h3>Update lesson</h3>
+            <div class="form-grid">
+              <label class="form-field">
+                Lesson ID
+                <input type="text" name="lesson_id" placeholder="UUID" required />
+              </label>
+              <label class="form-field">
+                Group ID (optional)
+                <input type="text" name="group_id" placeholder="UUID" />
+              </label>
+              <label class="form-field">
+                Starts at (optional)
+                <input type="datetime-local" name="starts_at" />
+              </label>
+              <label class="form-field">
+                Ends at (optional)
+                <input type="datetime-local" name="ends_at" />
+              </label>
+              <label class="form-field">
+                Topic (optional)
+                <input type="text" name="topic" />
+              </label>
+              <label class="form-field">
+                Plan text (optional)
+                <textarea name="plan_text"></textarea>
+              </label>
+              <label class="form-field">
+                Teacher name (optional)
+                <input type="text" name="teacher_name" />
+              </label>
+              <label class="form-field">
+                Cabinet text (optional)
+                <input type="text" name="cabinet_text" />
+              </label>
+              <label class="form-field">
+                Status (optional)
+                <select name="status">
+                  <option value="">--</option>
+                  <option value="scheduled">scheduled</option>
+                  <option value="cancelled">cancelled</option>
+                  <option value="completed">completed</option>
+                </select>
+              </label>
+              <button class="button secondary" type="submit">Update lesson</button>
+            </div>
+          </form>
+        </div>
+        <div class="card" id="lesson-response">
+          <h3>Response</h3>
+          <div class="response" id="lesson-response-text">No actions yet.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
           <h2>Daily tables</h2>
           <span class="pill">Per day</span>
         </div>
@@ -244,6 +401,7 @@ _DASHBOARD_HTML = """<!doctype html>
     </div>
 
     <script>
+      const basePath = window.location.pathname.replace(/\/dashboard\/?$/, "");
       const fmtNumber = (value) =>
         new Intl.NumberFormat("en-US").format(value ?? 0);
 
@@ -362,7 +520,7 @@ _DASHBOARD_HTML = """<!doctype html>
 
       const render = (data) => {
         const rangeText = document.getElementById("range-text");
-        rangeText.textContent = `${data.range.from_date} → ${data.range.to_date} (${data.range.days} days, ${data.range.timezone})`;
+        rangeText.textContent = `${data.range.from_date} -> ${data.range.to_date} (${data.range.days} days, ${data.range.timezone})`;
 
         const totalsGrid = document.getElementById("totals-grid");
         totalsGrid.innerHTML = "";
@@ -389,13 +547,117 @@ _DASHBOARD_HTML = """<!doctype html>
       };
 
       const load = async () => {
-        const res = await fetch("/dashboard/weekly");
+        const res = await fetch(`${basePath}/dashboard/weekly`);
         if (!res.ok) {
           throw new Error("Failed to load dashboard data");
         }
         const data = await res.json();
         render(data);
       };
+
+      const responseBox = document.getElementById("lesson-response-text");
+
+      const setResponse = (title, payload, isError = false) => {
+        const header = isError ? "ERROR" : "OK";
+        responseBox.textContent = `${header}: ${title}\n${JSON.stringify(payload, null, 2)}`;
+        responseBox.classList.toggle("warning", isError);
+      };
+
+      const toIso = (value) => {
+        if (!value) return null;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return date.toISOString();
+      };
+
+      const pickValue = (form, name) => {
+        const input = form.querySelector(`[name="${name}"]`);
+        if (!input) return "";
+        return (input.value || "").trim();
+      };
+
+      const createForm = document.getElementById("lesson-create-form");
+      const updateForm = document.getElementById("lesson-update-form");
+
+      createForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const payload = {
+          group_id: pickValue(createForm, "group_id"),
+          starts_at: toIso(pickValue(createForm, "starts_at")),
+          ends_at: toIso(pickValue(createForm, "ends_at")),
+          topic: pickValue(createForm, "topic") || null,
+          plan_text: pickValue(createForm, "plan_text") || null,
+          teacher_name: pickValue(createForm, "teacher_name") || null,
+          cabinet_text: pickValue(createForm, "cabinet_text") || null,
+          status: pickValue(createForm, "status") || "scheduled",
+        };
+
+        if (!payload.group_id || !payload.starts_at || !payload.ends_at) {
+          setResponse("Missing required fields", payload, true);
+          return;
+        }
+
+        try {
+          const res = await fetch(`${basePath}/lessons`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setResponse("Create failed", data, true);
+            return;
+          }
+          setResponse("Lesson created", data, false);
+          load();
+        } catch (err) {
+          setResponse("Create failed", { message: err.message }, true);
+        }
+      });
+
+      updateForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const lessonId = pickValue(updateForm, "lesson_id");
+        if (!lessonId) {
+          setResponse("Lesson ID required", {}, true);
+          return;
+        }
+
+        const data = {};
+        const groupId = pickValue(updateForm, "group_id");
+        if (groupId) data.group_id = groupId;
+        const startsAt = toIso(pickValue(updateForm, "starts_at"));
+        if (startsAt) data.starts_at = startsAt;
+        const endsAt = toIso(pickValue(updateForm, "ends_at"));
+        if (endsAt) data.ends_at = endsAt;
+        const topic = pickValue(updateForm, "topic");
+        if (topic) data.topic = topic;
+        const planText = pickValue(updateForm, "plan_text");
+        if (planText) data.plan_text = planText;
+        const teacherName = pickValue(updateForm, "teacher_name");
+        if (teacherName) data.teacher_name = teacherName;
+        const cabinetText = pickValue(updateForm, "cabinet_text");
+        if (cabinetText) data.cabinet_text = cabinetText;
+        const status = pickValue(updateForm, "status");
+        if (status) data.status = status;
+
+        try {
+          const res = await fetch(`${basePath}/lessons/${lessonId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const payload = await res.json();
+          if (!res.ok) {
+            setResponse("Update failed", payload, true);
+            return;
+          }
+          setResponse("Lesson updated", payload, false);
+          load();
+        } catch (err) {
+          setResponse("Update failed", { message: err.message }, true);
+        }
+      });
 
       load().catch((err) => {
         document.getElementById("range-text").textContent = "Failed to load dashboard.";
