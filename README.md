@@ -88,6 +88,7 @@ FastAPI + Postgres backend for the learning app.
 - `POST /managers` - Create/update manager.
 - `POST /admin/jobs/generate-lessons` - Generate lessons from group schedule.
 - `POST /admin/jobs/enqueue-reminders` - Enqueue lesson reminders.
+- `GET /dashboard/weekly` - Weekly dashboard metrics (tables, public).
 - `GET /health` - Health check.
 
 ## Tests

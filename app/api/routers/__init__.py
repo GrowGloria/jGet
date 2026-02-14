@@ -1,6 +1,7 @@
 from app.api.routers import (
     admin_jobs,
     auth,
+    dashboard,
     device_tokens,
     groups,
     lessons,
@@ -13,6 +14,7 @@ from app.api.routers import (
 
 __all__ = [
     "auth",
+    "dashboard",
     "students",
     "groups",
     "lessons",

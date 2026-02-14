@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers import (
     admin_jobs,
     auth,
+    dashboard,
     device_tokens,
     groups,
     lessons,
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     app.include_router(auth.router, prefix=settings.API_PREFIX)
+    app.include_router(dashboard.router, prefix=settings.API_PREFIX)
     app.include_router(students.router, prefix=settings.API_PREFIX)
     app.include_router(groups.router, prefix=settings.API_PREFIX)
     app.include_router(lessons.router, prefix=settings.API_PREFIX)
