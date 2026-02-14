@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import BadRequest, Forbidden, NotFound
+from app.core.errors import BadRequest, Conflict, Forbidden, NotFound
 from app.core.pagination import decode_cursor, encode_cursor
 from app.core.settings import settings
 from app.models.group import Group
@@ -32,6 +32,79 @@ def _parse_schedule_item(item: dict) -> tuple[int, time, int, str | None] | None
 
     cabinet_text = item.get("cabinet_text")
     return weekday, start_time, duration_minutes, cabinet_text
+
+
+async def create_lesson(
+    session: AsyncSession,
+    group_id: uuid.UUID,
+    starts_at: datetime,
+    ends_at: datetime,
+    topic: str | None,
+    plan_text: str | None,
+    teacher_name: str | None,
+    cabinet_text: str | None,
+    status: str,
+) -> Lesson:
+    if ends_at <= starts_at:
+        raise BadRequest("LESSON_TIME_INVALID", "Lesson end must be after start")
+
+    group = await session.get(Group, group_id)
+    if not group:
+        raise NotFound("GROUP_NOT_FOUND", "Group not found")
+
+    existing = await session.execute(
+        select(Lesson.id).where(Lesson.group_id == group_id, Lesson.starts_at == starts_at)
+    )
+    if existing.scalar_one_or_none():
+        raise Conflict("LESSON_TIME_CONFLICT", "Lesson already exists for this group and time")
+
+    lesson = Lesson(
+        group_id=group_id,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        topic=topic,
+        plan_text=plan_text,
+        teacher_name=teacher_name,
+        cabinet_text=cabinet_text,
+        status=status,
+    )
+    session.add(lesson)
+    await session.commit()
+    return lesson
+
+
+async def update_lesson(session: AsyncSession, lesson_id: uuid.UUID, data: dict) -> Lesson:
+    lesson = await session.get(Lesson, lesson_id)
+    if not lesson:
+        raise NotFound("LESSON_NOT_FOUND", "Lesson not found")
+
+    if "group_id" in data:
+        group = await session.get(Group, data["group_id"])
+        if not group:
+            raise NotFound("GROUP_NOT_FOUND", "Group not found")
+
+    new_start = data.get("starts_at", lesson.starts_at)
+    new_end = data.get("ends_at", lesson.ends_at)
+    if new_end <= new_start:
+        raise BadRequest("LESSON_TIME_INVALID", "Lesson end must be after start")
+
+    if "group_id" in data or "starts_at" in data:
+        target_group_id = data.get("group_id", lesson.group_id)
+        result = await session.execute(
+            select(Lesson.id).where(
+                Lesson.group_id == target_group_id,
+                Lesson.starts_at == new_start,
+                Lesson.id != lesson.id,
+            )
+        )
+        if result.scalar_one_or_none():
+            raise Conflict("LESSON_TIME_CONFLICT", "Lesson already exists for this group and time")
+
+    for key, value in data.items():
+        setattr(lesson, key, value)
+
+    await session.commit()
+    return lesson
 
 
 async def generate_lessons(session: AsyncSession, days: int = 30, actor_user_id: uuid.UUID | None = None) -> int:

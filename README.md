@@ -69,7 +69,9 @@ FastAPI + Postgres backend for the learning app.
 - `POST /groups` - Create group.
 - `PATCH /groups/{group_id}` - Update group.
 - `GET /lessons` [MVP] - List lessons for user with keyset pagination (starts_at DESC, id DESC, `user_id` query param).
+- `POST /lessons` - Create lesson.
 - `GET /lessons/{lesson_id}` [MVP] - Lesson detail with duration_minutes (`user_id` query param).
+- `PATCH /lessons/{lesson_id}` - Update lesson.
 - `GET /lessons/month` [MVP] - Lessons for month (TZ Europe/Vienna) with keyset pagination (starts_at ASC, id ASC, `user_id` query param).
 - `GET /lessons/range` [MVP] - Lessons in date range with keyset pagination (starts_at ASC, id ASC, `user_id` query param).
 - `POST /lessons/{lesson_id}/will-go` - Set child attendance for lesson (`user_id` query param).

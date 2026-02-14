@@ -9,11 +9,20 @@ from app.api.deps import get_user_by_id_param
 from app.core.db import get_session
 from app.core.errors import BadRequest
 from app.core.settings import settings
-from app.schemas.lesson import LessonDetailOut, LessonListPage, WillGoRequest
+from app.schemas.lesson import (
+    LessonCreate,
+    LessonDetailOut,
+    LessonListPage,
+    LessonOut,
+    LessonUpdate,
+    WillGoRequest,
+)
 from app.services.lessons import (
+    create_lesson,
     get_lesson_for_user,
     list_lessons_for_user,
     list_lessons_in_range,
+    update_lesson,
     upsert_will_go,
 )
 from app.utils.time import now_tz
@@ -30,6 +39,21 @@ async def list_lessons(
 ):
     items, next_cursor = await list_lessons_for_user(session, user, limit, cursor)
     return LessonListPage(items=items, next_cursor=next_cursor)
+
+
+@router.post("/lessons", response_model=LessonOut, status_code=201)
+async def create_lesson_route(payload: LessonCreate, session: AsyncSession = Depends(get_session)):
+    return await create_lesson(
+        session,
+        payload.group_id,
+        payload.starts_at,
+        payload.ends_at,
+        payload.topic,
+        payload.plan_text,
+        payload.teacher_name,
+        payload.cabinet_text,
+        payload.status,
+    )
 
 
 @router.get("/lessons/month", response_model=LessonListPage)
@@ -94,6 +118,16 @@ async def list_lessons_range(
         max_limit=50,
     )
     return LessonListPage(items=items, next_cursor=next_cursor)
+
+
+@router.patch("/lessons/{lesson_id}", response_model=LessonOut)
+async def update_lesson_route(
+    lesson_id: uuid.UUID,
+    payload: LessonUpdate,
+    session: AsyncSession = Depends(get_session),
+):
+    data = payload.model_dump(exclude_unset=True)
+    return await update_lesson(session, lesson_id, data)
 
 
 @router.get("/lessons/{lesson_id}", response_model=LessonDetailOut)
